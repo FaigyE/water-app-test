@@ -1,6 +1,6 @@
 "use client"
 import { useState, useEffect, useMemo, useCallback } from "react"
-import EditableText from "@/components/editable-text"
+import { EditableText } from "@/components/editable-text"
 import { summarizeAeratorSavings, getAeratorSummaryTable, consolidateInstallationsByUnitV2 } from "@/lib/utils/aerator-helpers"
 import { useReportContext } from "@/lib/report-context"
 import { Button } from "@/components/ui/button"
@@ -9,7 +9,7 @@ import { updateStoredNote, getStoredNotes } from "@/lib/notes"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import Image from "next/image"
 import type { ReportImage } from "@/lib/types"
-import ImageUploader from "./image-uploader"
+import { ImageUploader } from "./image-uploader"
 import { useToast } from "@/hooks/use-toast"
 
 interface InstallationData {
@@ -25,18 +25,21 @@ interface InstallationData {
 }
 
 interface ReportDetailPageProps {
-  installationData: InstallationData[]
+  installationData?: InstallationData[]
   isPreview?: boolean
   isEditable?: boolean
 }
 
-export default function ReportDetailPage({
-  installationData: initialInstallationData,
+export function ReportDetailPage({
+  installationData: initialInstallationData = [],
   isPreview = true,
   isEditable = true,
 }: ReportDetailPageProps) {
   const { reportData, updateReportData, updateSectionTitle, setReportData } = useReportContext()
-  const { aeratorData, images } = reportData
+  
+  // Add safety checks for undefined values
+  const { aeratorData = [], images = [] } = reportData || {}
+  
   const [installationData, setInstallationData] = useState<InstallationData[]>(initialInstallationData)
   const [additionalRows, setAdditionalRows] = useState<InstallationData[]>([])
   const [editedNotes, setEditedNotes] = useState<Record<string, string>>({})
@@ -251,7 +254,7 @@ export default function ReportDetailPage({
         })
       }
     },
-    [additionalRows, setAdditionalRows, unitColumn, setEditedInstallations, setReportData, isEditable],
+    [additionalRows, setAdditionalRows, unitColumn, setEditedInstallations, setReportData, isEditable, allData],
   )
 
   const handleUnitEdit = (originalUnit: string, newUnit: string) => {
@@ -450,9 +453,9 @@ export default function ReportDetailPage({
   }, [])
 
   return isPreview ? (
-    <div className="report-page min-h-[1056px] relative">
+    <div className="print-section flex min-h-screen flex-col items-center justify-center p-8 text-center">
       <div className="mb-8">
-        <img src="/images/greenlight-logo.png" alt="GreenLight Logo" className="h-24" crossOrigin="anonymous" />
+        <Image src="/images/greenlight-logo.png" alt="GreenLight Logo" width={200} height={200} />
       </div>
 
       <div className="mb-16">
@@ -460,13 +463,13 @@ export default function ReportDetailPage({
           <h2 className="text-xl font-bold">
             {isEditable ? (
               <EditableText
-                value={reportData.sections.detailPage.title}
+                value={reportData?.sections?.detailPage?.title || "Aerator Details"}
                 onChange={(value) => updateSectionTitle("detailPage", value)}
                 placeholder="Section Title"
                 className="text-xl font-bold"
               />
             ) : (
-              reportData.sections.detailPage.title
+              reportData?.sections?.detailPage?.title || "Aerator Details"
             )}
           </h2>
           {isEditable && (
@@ -529,9 +532,7 @@ export default function ReportDetailPage({
                 alt={image.alt}
                 width={300}
                 height={200}
-                layout="responsive"
-                objectFit="contain"
-                className="h-48 w-full rounded-md"
+                className="h-48 w-full rounded-md object-contain"
               />
               <EditableText
                 as="p"
@@ -559,11 +560,12 @@ export default function ReportDetailPage({
       </div>
 
       <div className="footer-container">
-        <img
+        <Image
           src="/images/greenlight-footer.png"
           alt="GreenLight Footer"
+          width={800}
+          height={100}
           className="w-full h-auto"
-          crossOrigin="anonymous"
         />
       </div>
     </div>
@@ -573,16 +575,16 @@ export default function ReportDetailPage({
       {dataPages.map((pageData, pageIndex) => (
         <div key={pageIndex} className="report-page min-h-[1056px] relative">
           <div className="mb-8">
-            <img
+            <Image
               src="/images/greenlight-logo.png"
               alt="GreenLight Logo"
-              className="h-24"
-              crossOrigin="anonymous"
+              width={200}
+              height={200}
             />
           </div>
 
           <div className="mb-16">
-            <h2 className="text-xl font-bold mb-6">{reportData.sections.detailPage.title}</h2>
+            <h2 className="text-xl font-bold mb-6">{reportData?.sections?.detailPage?.title || "Aerator Details"}</h2>
 
             <div className="mb-6 overflow-hidden rounded-md border">
               <Table>
@@ -636,9 +638,7 @@ export default function ReportDetailPage({
                     alt={image.alt}
                     width={300}
                     height={200}
-                    layout="responsive"
-                    objectFit="contain"
-                    className="h-48 w-full rounded-md"
+                    className="h-48 w-full rounded-md object-contain"
                   />
                   <p className="mt-2 text-center text-sm text-gray-600">{image.alt}</p>
                 </div>
@@ -647,11 +647,12 @@ export default function ReportDetailPage({
           </div>
 
           <div className="footer-container">
-            <img
+            <Image
               src="/images/greenlight-footer.png"
               alt="GreenLight Footer"
+              width={800}
+              height={100}
               className="w-full h-auto"
-              crossOrigin="anonymous"
             />
           </div>
 
